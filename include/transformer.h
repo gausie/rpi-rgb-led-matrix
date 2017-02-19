@@ -114,6 +114,20 @@ private:
   RotateTransformer rotated_;
 }  __attribute__((deprecated));
 
+// P10outdoorTransformer
+class P10outdoorTransformer : public CanvasTransformer {
+public:
+  P10outdoorTransformer();
+  virtual ~P10outdoorTransformer();
+
+  virtual Canvas *Transform(Canvas *output);
+
+private:
+  class TransformCanvas;
+
+  TransformCanvas *const canvas_;
+};
+
 } // namespace rgb_matrix
 
 #endif // RPI_TRANSFORMER_H

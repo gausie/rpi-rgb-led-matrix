@@ -228,4 +228,71 @@ LargeSquare64x64Transformer::LargeSquare64x64Transformer()
 Canvas *LargeSquare64x64Transformer::Transform(Canvas *output) {
   return rotated_.Transform(arrange_.Transform(output));
 }
+
+/*********************************/
+/* P10outdoor Transformer Canvas */
+/*********************************/
+class P10outdoorTransformer::TransformCanvas : public Canvas {
+public:
+  TransformCanvas() : delegatee_(NULL) {}
+
+  void SetDelegatee(Canvas* delegatee);
+
+  virtual void Clear();
+  virtual void Fill(uint8_t red, uint8_t green, uint8_t blue);
+  virtual int width() const;
+  virtual int height() const;
+  virtual void SetPixel(int x, int y, uint8_t red, uint8_t green, uint8_t blue);
+
+private:
+  Canvas *delegatee_;
+};
+
+void P10outdoorTransformer::TransformCanvas::SetDelegatee(Canvas* delegatee) {
+  delegatee_ = delegatee;
+}
+
+void P10outdoorTransformer::TransformCanvas::Clear() {
+  delegatee_->Clear();
+}
+
+void P10outdoorTransformer::TransformCanvas::Fill(uint8_t red, uint8_t green, uint8_t blue) {
+  delegatee_->Fill(red, green, blue);
+}
+
+int P10outdoorTransformer::TransformCanvas::width() const {
+  return delegatee_->width() / 2;
+}
+
+int P10outdoorTransformer::TransformCanvas::height() const {
+  return delegatee_->height() * 2;
+}
+
+void P10outdoorTransformer::TransformCanvas::SetPixel(int x, int y, uint8_t red, uint8_t green, uint8_t blue) {
+  int new_x = x;
+  int new_y = y;
+  int xoffset = 8 * (x / 8);
+  int yoffset = ((y + 4) % 8) / 4;
+  new_x = x + 8 * yoffset + xoffset;
+  new_y = (y % 4) + 4 * (y / 8);
+  delegatee_->SetPixel(new_x, new_y, red, green, blue);
+}
+
+/*************************/
+/* P10outdoor Transformer */
+/*************************/
+P10outdoorTransformer::P10outdoorTransformer()
+  : canvas_(new TransformCanvas()) {
+}
+
+P10outdoorTransformer::~P10outdoorTransformer() {
+  delete canvas_;
+}
+
+Canvas *P10outdoorTransformer::Transform(Canvas *output) {
+  assert(output != NULL);
+
+  canvas_->SetDelegatee(output);
+  return canvas_;
+}
 } // namespace rgb_matrix
